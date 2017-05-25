@@ -45,6 +45,8 @@ int main()
 
   PID pid;
   // TODO: Initialize the pid variable.
+	//Initialize pid controller Kp, Kd, Ki
+	pid.Init(0.1, 0.00001, 1.0);
   
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
@@ -69,6 +71,12 @@ int main()
           * another PID controller to control the speed!
           */
 
+					// Update pid error terms with latest cross track error
+					pid.UpdateError(cte);
+
+					// Determine control command
+					double steer_value = pid.TotalError();
+					//double steer_value = 0.0;
 
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
