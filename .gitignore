@@ -2,3 +2,8 @@
 build
 tags
 .editorconfig
+/Debug
+/.vs/PID/v15
+/PID.vcxproj.filters
+/PID.vcxproj
+/PID.sln
