@@ -7,6 +7,7 @@
 #include <math.h>
 
 
+
 using namespace std;
 
 // for convenience
@@ -44,7 +45,6 @@ int main()
   uWS::Hub h;
 
   PID pid;
-  // TODO: Initialize the pid variable.
 	//Initialize pid controller Kp, Kd, Ki
 	pid.Init(0.1, 0.00001, 1.0);
   
@@ -79,7 +79,7 @@ int main()
 					//double steer_value = 0.0;
 
           // DEBUG
-          std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+         // std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
