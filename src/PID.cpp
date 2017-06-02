@@ -20,12 +20,14 @@ void PID::Init(double Kp_init, double Ki_init, double Kd_init) {
 	d_error = 0.0;
 
 	// cte offset, measurement period, dp_p, dp_i, dp_d
-	twiddle.Init(0.5, 1000, 0.05, 0.0005, 0.05);
+	twiddle.Init(0.75, 2500, 500, 0.02, 0.1*Ki, 0.5);
 }
 
 void PID::UpdateError(double cte) {
 	cte = twiddle.Tune(cte, Kp, Ki, Kd);
 	
+	cte = d_error + 0.9*(cte - d_error);
+
 	d_error = p_error;
 	p_error = cte;
 	i_error += cte;
@@ -35,4 +37,3 @@ void PID::UpdateError(double cte) {
 double PID::TotalError() {
 	return -Kp*p_error - Ki*i_error - Kd*(p_error - d_error);
 }
-
