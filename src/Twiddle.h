@@ -29,19 +29,23 @@ private:
 	/*
 	* Errror measurement time
 	*/
-	unsigned long int counter;
-	unsigned long int counter_max;
+	unsigned long int error_counter;
+	unsigned long int error_time;
 
 	/*
 	* Cross track error offset
 	*/
 	double cte_offset;
 	int offset_state;
+	unsigned long int wander_counter;
+	unsigned long int wander_time;
 
 	/*
 	* Calculate the total PID error.
 	*/
 	double RMSE();
+
+	double Wander(double cte);
 
 
 public:
@@ -58,7 +62,7 @@ public:
 	/*
 	* Initialize PID.
 	*/
-	void Init(const double offset, const double trial_time, double dp_p, double dp_i, double dp_d);
+	void Init(double set_cte_offset, unsigned long int set_counter_max, unsigned long int set_settle_time, double dp_p, double dp_i, double dp_d);
 	
 	/*
 	* Tune the PID paramters
