@@ -18,6 +18,11 @@ public:
   double Ki;
   double Kd;
 
+	double lower_limit;
+	double upper_limit;
+
+	double steer_last;
+
 	/*
 	* Twiddle tune
 	*/
@@ -36,7 +41,7 @@ public:
   /*
   * Initialize PID.
   */
-  void Init(double Kp_init, double Ki_init, double Kd_init);
+  void Init(double Kp, double Ki, double Kd, double lower_limit, double upper_limit);
 
   /*
   * Update the PID error variables given cross track error.
