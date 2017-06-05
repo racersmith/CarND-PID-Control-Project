@@ -5,6 +5,7 @@
 #include "json.hpp"
 #include "PID.h"
 #include <math.h>
+#include "Twiddle.h"
 
 
 
@@ -44,12 +45,26 @@ int main()
 
   uWS::Hub h;
 
-  PID pid;
+  PID steering;
 	//Initialize pid controller Kp, Ki, Kd, lower_limit, upper_limit
-	pid.Init(0.322, 1.47e-9, 6.3, -1, 1);
+	steering.Init(0.3145, 1.47e-9, 5.84, -1, 1);
+
+	
+	// Tune parameters with Twiddle
+	Twiddle steerTune;
+	// Parameters: cte offset, measurement period, dp_p, dp_i, dp_d
+	steerTune.Init(6000, 500, 0.0, 0.03, 1.0e-5, 0.5);
+
+	const double TARGET_SPEED = 50;
+	PID throttle;
+	//Initialize pid controller Kp, Ki, Kd, lower_limit, upper_limit
+	throttle.Init(2.25, 0.0166, 1.92, -1, 1);
+
+	Twiddle throttleTune;
+	throttleTune.Init(600, 200, 2.0, 0.2, 0.001, 0.1);
   
 
-  h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&steering, &steerTune, &throttle, &throttleTune, &TARGET_SPEED](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -71,18 +86,39 @@ int main()
           * another PID controller to control the speed!
           */
 
-					// Update pid error terms with latest cross track error
-					pid.UpdateError(cte);
+					/*
+					* Steering Control
+					*/
 
-					// Determine control command
-					double steer_value = pid.TotalError();
+					// Tune steering PID parameters with twiddle
+					cte = steerTune.Tune(cte, steering.Kp, steering.Ki, steering.Kd);
+				
+					// Update steering error and command steering
+					steering.UpdateError(cte);
+					double steer_value = steering.Command();
 
           // DEBUG
           //std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+					
+					/*
+					* Throttle Control
+					*/
+
+					double error_speed = speed - TARGET_SPEED;
+					
+					// Tune Throttle PID parameters with twiddle
+					error_speed = throttleTune.Tune(error_speed, throttle.Kp, throttle.Ki, throttle.Kd);
+
+					// Update throttle error and command throttle
+					throttle.UpdateError(error_speed);
+					double long_pedal = throttle.Command();
+
+					// DEBUG
+					//std::cout << "Speed Error: " << error_speed << " Throttle Value: " << long_pedal << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.5;
+          msgJson["throttle"] = long_pedal;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           //std::cout << msg << std::endl;
           (ws).send(msg.data(), msg.length(), uWS::OpCode::TEXT);

@@ -89,7 +89,7 @@ double Twiddle::Tune(double cte, double& Kp, double& Ki, double& Kd) {
 		p[0] = Kp;
 		p[1] = Ki;
 		p[2] = Kd;
-		int n_param = 3;
+		const int n_param = 3;
 
 		// On first pass update to actual error
 		if (best_error == -1) {

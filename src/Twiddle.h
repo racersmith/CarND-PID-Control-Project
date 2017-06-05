@@ -13,41 +13,45 @@
 */
 class Twiddle {
 private:
-	/*
-	* parameter step size
-	*/
+	// parameter step size
 	double dp[3];
+	// Current adjustment parameter
 	int param_index;
 
-	/*
-	* Twiddle state
-	*/
+	// Current parameter trial state
 	int twiddle_state;
 
-	/*
-	* error
-	*/
+	// Cumulative error of current parameter trial
 	double running_error;
+	// Lowest achieved error
 	double best_error;
 	
-	/*
-	* Errror measurement time
-	*/
+	// Counter to track current trial time
 	int error_counter;
+	// How long to test a parameter set
 	int error_time;
 
-	/*
-	* Cross track error offset
-	*/
+	// How much to offset from centerline when wandering
 	double cte_offset;
+	// Which side of center to offset
 	int offset_state;
+	// Counter to track current wander cycle
 	int wander_counter;
+	// How long to wander to one side of the road
 	int wander_time;
 
 	/*
 	* Calculate the total PID error.
 	*/
 	double RMSE();
+
+	/*
+	* Wander
+	* Artificial forced preturbance
+	* @param cte Actual Cross Track Error
+	*
+	* @return Preturbed Cross Track Error
+	*/
 	double Wander(double cte);
 
 	
@@ -83,7 +87,7 @@ public:
 	* @param Kp Current Kp parameter
 	* @param Ki Current Ki parameter
 	* @param Kd Current Kd parameter
-
+	*
 	* @return Preturbed CTE from wander
 	*/
 	double Tune(double cte, double& Kp, double& Ki, double& Kd);

@@ -19,51 +19,39 @@ void PID::Init(double Kp, double Ki, double Kd, double lower_limit, double upper
 	i_error = 0.0;
 	d_error = 0.0;
 
-	steer_last = 0.0;
-
-	// Tune parameters with Twiddle
-	// Parameters: cte offset, measurement period, dp_p, dp_i, dp_d
-	twiddle.Init(6000, 500, 0.5, 0.005, 1.0e-10, 0.5);
+	output_last = 0.0;
 }
 
-void PID::UpdateError(double cte) {
+void PID::UpdateError(double error) {
 	
 	double K_total = Kp + Ki + Kd;
-	
-	cte = twiddle.Tune(cte, Kp, Ki, Kd);
 
 	// Reset integral error on parameter update
 	if (K_total != Kp + Ki + Kd) {
 		i_error = 0.0;
 	}
 
-	// Smooth cross track errors
-	// seems to have discontinuities
-	// This was can be used to apply a simple fitler
-	// to ease initial tuning woes.
-	//cte = d_error + 0.9*(cte - d_error);
-
 	d_error = p_error;
-	p_error = cte;
+	p_error = error;
 
 	// Only accumulate i error if output is not railed
 	// This is to avoid windup
-	if (steer_last <= upper_limit && steer_last >= lower_limit) {
-		i_error += cte;
+	if (output_last <= upper_limit && output_last >= lower_limit) {
+		i_error += error;
 	}
 }
 
-double PID::TotalError() {
-	double steer = -Kp*p_error - Ki*i_error - Kd*(p_error - d_error);
-	steer_last = steer;
+double PID::Command() {
+	double output = -Kp*p_error - Ki*i_error - Kd*(p_error - d_error);
+	output_last = output;
 
 	// Keep within limits
-	if (steer > upper_limit) {
-		steer = upper_limit;
+	if (output > upper_limit) {
+		output = upper_limit;
 	}
-	else if (steer < lower_limit) {
-		steer = lower_limit;
+	else if (output < lower_limit) {
+		output = lower_limit;
 	}
 
-	return steer;
+	return output;
 }
