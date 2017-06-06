@@ -100,6 +100,10 @@ double Twiddle::Tune(double control_error, double& Kp, double& Ki, double& Kd) {
 		}
 		// Improvement
 		else if (error < best_error) {
+			// Print best parameters thus far
+			std::cout << "\tKp: " << Kp << "\tKi: " << Ki << "\tKd: " << Kd << "\tSum dp: " << sum_dp;
+			std::cout << "\tBest: " << best_error*best_error << "\tError: " << running_error << std::endl;
+
 			twiddle_state = 0;
 			best_error = error;
 			dp[param_index] *= 1.1;
@@ -130,9 +134,6 @@ double Twiddle::Tune(double control_error, double& Kp, double& Ki, double& Kd) {
 				dp[param_index] *= 0.9;
 				param_index = (param_index + 1) % n_param;
 				p[param_index] += dp[param_index];
-
-				std::cout << "\tKp: " << Kp << "\tKi: " << Ki << "\tKd: " << Kd << "Sum dp: " << sum_dp;
-				std::cout << "\tBest: " << best_error*best_error << "\tError: " << running_error << std::endl;
 				break;
 
 			// What are you doing down here?
