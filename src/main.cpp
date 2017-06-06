@@ -45,26 +45,42 @@ int main()
 
   uWS::Hub h;
 
-  PID steering;
-	//Initialize pid controller Kp, Ki, Kd, lower_limit, upper_limit
-	steering.Init(0.3145, 1.47e-9, 5.84, -1, 1);
 
-	
-	// Tune parameters with Twiddle
+	//Initialize pid controller
+	double steer_Kp = 0.467831;
+	double steer_Ki = 6.64569e-08;
+	double steer_Kd = 7.19417;
+	double steer_lower_limit = -1.0;
+	double steer_upper_limit = 1.0;
+	PID steering;
+	steering.Init(steer_Kp, steer_Ki, steer_Kd, steer_lower_limit, steer_upper_limit);
+
+	// Steering tuning with Twiddle
 	Twiddle steerTune;
 	// Parameters: cte offset, measurement period, dp_p, dp_i, dp_d
-	steerTune.Init(6000, 500, 0.0, 0.03, 1.0e-5, 0.5);
+	steerTune.Init(6000, 500, 0.0, 0.2*steer_Kp, 0.2*steer_Ki, 0.2*steer_Kd);
 
-	const double TARGET_SPEED = 50;
+	// Speed is a function of steering angle
+	// These parameters set the max and min
+	// speeds based on steering.
+	const double MAX_SPEED = 60;
+	const double MIN_SPEED = 20;
+	
 	PID throttle;
 	//Initialize pid controller Kp, Ki, Kd, lower_limit, upper_limit
-	throttle.Init(2.25, 0.0166, 1.92, -1, 1);
+	double throttle_Kp = 1.60318;
+	double throttle_Ki = 0.0157955;
+	double throttle_Kd = 1.89458;
+	double throttle_lower_limit = -1.0;
+	double throttle_upper_limit = 1.0;
+	throttle.Init(throttle_Kp, throttle_Ki, throttle_Kd, throttle_lower_limit, throttle_upper_limit);
 
+	// Throttle tuning with Twiddle
 	Twiddle throttleTune;
-	throttleTune.Init(600, 200, 2.0, 0.2, 0.001, 0.1);
+	throttleTune.Init(600, 200, 0.0, 0.2*throttle_Kp, 0.2*throttle_Ki, 0.2*throttle_Kd);
   
 
-  h.onMessage([&steering, &steerTune, &throttle, &throttleTune, &TARGET_SPEED](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&steering, &steerTune, &throttle, &throttleTune, &MAX_SPEED, &MIN_SPEED](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -79,17 +95,10 @@ int main()
           double cte = std::stod(j[1]["cte"].get<std::string>());
           double speed = std::stod(j[1]["speed"].get<std::string>());
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
-          /*
-          * TODO: Calcuate steering value here, remember the steering value is
-          * [-1, 1].
-          * NOTE: Feel free to play around with the throttle and speed. Maybe use
-          * another PID controller to control the speed!
-          */
 
 					/*
 					* Steering Control
 					*/
-
 					// Tune steering PID parameters with twiddle
 					cte = steerTune.Tune(cte, steering.Kp, steering.Ki, steering.Kd);
 				
@@ -103,13 +112,18 @@ int main()
 					/*
 					* Throttle Control
 					*/
+					// Set throttle as a function of steering angle
+					// 1st Order
+					//double adjusted_speed_target = -(MAX_SPEED - MIN_SPEED) * std::abs(steer_value) + MAX_SPEED;
+					// 2nd Order
+					double adjusted_speed_target = -(MAX_SPEED - MIN_SPEED) * (1-steer_value*steer_value) + MAX_SPEED;
 
-					double error_speed = speed - TARGET_SPEED;
+					double error_speed = speed - adjusted_speed_target;
 					
 					// Tune Throttle PID parameters with twiddle
 					error_speed = throttleTune.Tune(error_speed, throttle.Kp, throttle.Ki, throttle.Kd);
 
-					// Update throttle error and command throttle
+					// Update throttle error and commanded speed
 					throttle.UpdateError(error_speed);
 					double long_pedal = throttle.Command();
 
