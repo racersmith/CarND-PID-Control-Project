@@ -25,7 +25,7 @@ public:
 	// Largest output value
 	double upper_limit;
 	// Last output command
-	double output_last;
+	double output;
 
 	/*
 	* Twiddle tune

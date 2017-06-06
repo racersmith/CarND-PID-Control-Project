@@ -19,7 +19,7 @@ void PID::Init(double Kp, double Ki, double Kd, double lower_limit, double upper
 	i_error = 0.0;
 	d_error = 0.0;
 
-	output_last = 0.0;
+	output = 0.0;
 }
 
 void PID::UpdateError(double error) {
@@ -36,14 +36,13 @@ void PID::UpdateError(double error) {
 
 	// Only accumulate i error if output is not railed
 	// This is to avoid windup
-	if (output_last <= upper_limit && output_last >= lower_limit) {
+	if (output <= upper_limit && output >= lower_limit) {
 		i_error += error;
 	}
 }
 
 double PID::Command() {
-	double output = -Kp*p_error - Ki*i_error - Kd*(p_error - d_error);
-	output_last = output;
+	output = -Kp*p_error - Ki*i_error - Kd*(p_error - d_error);
 
 	// Keep within limits
 	if (output > upper_limit) {
