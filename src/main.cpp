@@ -63,21 +63,21 @@ int main()
 	// Speed is a function of steering angle
 	// These parameters set the max and min
 	// speeds based on steering.
-	const double MAX_SPEED = 60;
-	const double MIN_SPEED = 20;
+	const double MAX_SPEED = 50;
+	const double MIN_SPEED = 10;
 	
 	PID throttle;
 	//Initialize pid controller Kp, Ki, Kd, lower_limit, upper_limit
-	double throttle_Kp = 1.60318;
-	double throttle_Ki = 0.0157955;
-	double throttle_Kd = 1.89458;
+	double throttle_Kp = 2.12;
+	double throttle_Ki = 0.01;
+	double throttle_Kd = 2.6;
 	double throttle_lower_limit = -1.0;
 	double throttle_upper_limit = 1.0;
 	throttle.Init(throttle_Kp, throttle_Ki, throttle_Kd, throttle_lower_limit, throttle_upper_limit);
 
 	// Throttle tuning with Twiddle
 	Twiddle throttleTune;
-	throttleTune.Init(600, 200, 0.0, 0.2*throttle_Kp, 0.2*throttle_Ki, 0.2*throttle_Kd);
+	throttleTune.Init(600, 200, 5.0, 0.2*throttle_Kp, 0.2*throttle_Ki, 0.2*throttle_Kd);
   
 
   h.onMessage([&steering, &steerTune, &throttle, &throttleTune, &MAX_SPEED, &MIN_SPEED](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
@@ -116,7 +116,7 @@ int main()
 					// 1st Order
 					//double adjusted_speed_target = -(MAX_SPEED - MIN_SPEED) * std::abs(steer_value) + MAX_SPEED;
 					// 2nd Order
-					double adjusted_speed_target = -(MAX_SPEED - MIN_SPEED) * (1-steer_value*steer_value) + MAX_SPEED;
+					double adjusted_speed_target = (MAX_SPEED - MIN_SPEED) * (1.0 - steer_value*steer_value) + MIN_SPEED;
 
 					double error_speed = speed - adjusted_speed_target;
 					
