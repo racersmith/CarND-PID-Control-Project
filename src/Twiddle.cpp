@@ -58,24 +58,25 @@ double Twiddle::Wander(double cte) {
 	}
 }
 
-double Twiddle::Tune(double cte, double& Kp, double& Ki, double& Kd) {
+double Twiddle::Tune(double control_error, double& Kp, double& Ki, double& Kd) {
 	// Check if tuning is complete
 	double sum_dp = dp[0] + dp[1] + dp[2];
 	
 	if (sum_dp < 0.0001) {
-		// return cte unmodified to resume normal driving
+		// return error unmodified to resume normal operation
 		offset_state = 0;
-		return cte;
+		return control_error;
 	}
 	
 	// Preturb the target position using wander
-	double adjusted_cte = Wander(cte);
+	double adjusted_control_error = Wander(control_error);
 
-	running_error += adjusted_cte*adjusted_cte;
+	// Accumulate squared error
+	running_error += adjusted_control_error*adjusted_control_error;
 
 	// Debug printing
-	std::cout << "wander: " << offset_state << "\tcte: " << adjusted_cte << "\tSum dp: " << sum_dp << "\tKp: " << Kp << "\tKi: " << Ki ;
-	std::cout  << "\tKd: " << Kd  << "\tcounter: " << error_counter << "\tBest: " << best_error*best_error << "\tError: " << running_error << std::endl;
+	//std::cout << "wander: " << offset_state << "\error: " << adjusted_control_error << "\tSum dp: " << sum_dp << "\tKp: " << Kp << "\tKi: " << Ki ;
+	//std::cout  << "\tKd: " << Kd  << "\tcounter: " << error_counter << "\tBest: " << best_error*best_error << "\tError: " << running_error << std::endl;
 	
 	// Check if evaluation time has elapsed or if the error has exceeded the best
 	error_counter++;
@@ -129,6 +130,9 @@ double Twiddle::Tune(double cte, double& Kp, double& Ki, double& Kd) {
 				dp[param_index] *= 0.9;
 				param_index = (param_index + 1) % n_param;
 				p[param_index] += dp[param_index];
+
+				std::cout << "\tKp: " << Kp << "\tKi: " << Ki << "\tKd: " << Kd << "Sum dp: " << sum_dp;
+				std::cout << "\tBest: " << best_error*best_error << "\tError: " << running_error << std::endl;
 				break;
 
 			// What are you doing down here?
@@ -138,9 +142,12 @@ double Twiddle::Tune(double cte, double& Kp, double& Ki, double& Kd) {
 				break;
 			}
 		}
+
+		// Set new control parameters
 		Kp = p[0];
 		Ki = p[1];
 		Kd = p[2];
 	}
-	return adjusted_cte;
+
+	return adjusted_control_error;
 }
