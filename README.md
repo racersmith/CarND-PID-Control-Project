@@ -1,6 +1,8 @@
 # CarND-Controls-PID
 Self-Driving Car Engineer Nanodegree Program
 
+PID control implementation for steering and throttle control using Twiddle for hyperperameter tuning.
+
 ---
 
 ## Dependencies
@@ -43,29 +45,46 @@ The following section will cover the rubric points outlined for the project.
 
 ### Compilation
 
-Project compiles using basic build instructions above.
+Project compiles using build instructions above.
 [insert build example]
 
 ### Implementation
+The PID controller is implemented in two parts.  The PID controller and a system for automatic hyperparameter tuning called Twiddle.
 
-Outline PID controller implementation
 #### PID
 The code behind a PID controller is remarkably simple.  The controller is first initiallized with `PID::Init(Kp, Ki, Kd, lower_limit, upper_limit)`.  Where `Kp` is the proportional constant which controls how much of an impact any given error value impacts the control output, `Ki` is the integral constant which controls how much of an impact a sustained error value impacts the control output, and `Kd` is the derivative constant which controls how much the step-by-step change in error will impact the control output.
-The `lower_limit` and `upper_limit` are used to constrain the controller's output values as well as stop the accumulation of integral error if the output is at a limit.  If this the integral error was allowed to accumulate when the output is at a maximum the integral error can quickly become extremely large and not allow the controller to recover.
-After initialization the error is first updated by calling `PID::UpdateError(error)`, line 25, this updates the p, i and d error terms.  The control command can then be aquired by `PID::Command()`, line 44, which returns the control command by taking each of the p, i and d error terms and multiplying by their respective constants.
+The `lower_limit` and `upper_limit` are used to constrain the controller's output values as well as stop the accumulation of integral error if the output is at a limit.  If the integral error was allowed to accumulate when the output is at a maximum the integral error can quickly become extremely large and not allow the controller to recover from a large deviation.
+After initialization the error is first updated by calling `PID::UpdateError(error)`, line 25, this updates the p, i and d error terms.  
+
+```c++
+d_error = p_error;
+p_error = error;
+
+// Only accumulate i error if output is not railed
+// This is to avoid windup
+if (output <= upper_limit && output >= lower_limit) {
+	i_error += error;
+}
+```
+
+The control command can then be aquired by `PID::Command()`, line 44, which returns the control command by taking each of the p, i and d error terms and multiplying by their respective constants.
+
+```c++
+output = -Kp*p_error - Ki*i_error - Kd*(p_error - d_error)
+```
 
 While the actual code behind the PID control the difficult part is selecting correct K parameters for the system.  To automate this process Twiddle is used.
 
 #### Twiddle
-Twiddle is a systematic method of  tuning hyperparameters.  Twiddle was implemented to tune the three PID parameters.  Each parameter goes through a tuning cycle where a slightly larger value is trialed and the system error is evaulated.  If the error is better than the step size for next time is increased and the next parameter is adjusted.  If the error does not improve the parameter is adjusted by the same amount in the opposite direction.  If this still does not provide an improved error then the step size is reduced.  
+Twiddle is a systematic method of  tuning hyperparameters.  Twiddle was implemented to tune the three PID parameters.  Each parameter goes through a tuning cycle where a slightly larger value is trialed and the system error is evaluated.  If the error is better than the step size for next time is increased and the next parameter is adjusted.  If the error does not improve the parameter is adjusted by the same amount in the opposite direction.  If this still does not provide an improved error then the step size is reduced.  
 To improve tuning a forced perturbance is added to the system in the form of a squre wave.
 Since the system was training while driving it was important to have reasonable initial tuning parameters such that the car would continue making laps around the test track.  After the step size for each parameter gets small enough Twiddle is turned off and normal driving operation returns.
 The Twiddle implementation can be found in `Twiddle.cpp` and `Twiddle.h`.  
 
 ### Reflection
-Describe the effect of the P, I and D compoents have.
+Each tuning parameter has a specific impact to the system.  `Kp` adjusts how aggressivly the steering reacts to a cross track error. `Ki` adjusts how much a sustained cross track error will bias the steering.  `Kd` can reduce oscillation in the system when tuned appropriatly.  Oscillation can still occure when `Kd` is too small or too large for any given `Kp`.  Each term can induce oscillations which adds to the challenge of tuning.
 
-Describe how hyperparameters were selected.  
+It was necessary to manually find hyperparameters that would allow for continous driving.  `Kp` was gradually increased until oscillation around the target was achieved.  `Kd` was then increased until the oscillation was minimized.  With `Kp` and `Kd` set the car was able to drive continiously around the track at speeds around 30 MPH.  Twiddle was then used to further tune the system.  To help in the initial tuning, wander was turned on which added a forced square wave perturbance to the system.  
 
 ### Simulation
 Final solutions provides safe driving results on the test track.
