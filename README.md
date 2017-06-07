@@ -99,4 +99,5 @@ Before an automated tuning process could start a reasonably stable system had to
 Final solution provides safe driving results on the test track.
 
 Click the picture below for the demo video on YouTube.
+
 [![PID Controller Demo Video](media/DemoVideoStill.jpg)](https://www.youtube.com/watch?v=5jfbjID_vB4)
