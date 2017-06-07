@@ -47,9 +47,9 @@ int main()
 
 
 	//Initialize pid controller
-	double steer_Kp = 0.467831;
-	double steer_Ki = 6.64569e-08;
-	double steer_Kd = 7.19417;
+	double steer_Kp = 0.345259;
+	double steer_Ki = 4.91032e-08;
+	double steer_Kd = 6.24905;
 	double steer_lower_limit = -1.0;
 	double steer_upper_limit = 1.0;
 	PID steering;
@@ -68,9 +68,9 @@ int main()
 	
 	PID throttle;
 	//Initialize pid controller Kp, Ki, Kd, lower_limit, upper_limit
-	double throttle_Kp = 2.12;
-	double throttle_Ki = 0.01;
-	double throttle_Kd = 2.6;
+	double throttle_Kp = 3.0104;
+	double throttle_Ki = 0.00843383;
+	double throttle_Kd = 2.29189;
 	double throttle_lower_limit = -1.0;
 	double throttle_upper_limit = 1.0;
 	throttle.Init(throttle_Kp, throttle_Ki, throttle_Kd, throttle_lower_limit, throttle_upper_limit);
@@ -100,7 +100,9 @@ int main()
 					* Steering Control
 					*/
 					// Tune steering PID parameters with twiddle
-					cte = steerTune.Tune(cte, steering.Kp, steering.Ki, steering.Kd);
+					if (false) {
+						cte = steerTune.Tune(cte, steering.Kp, steering.Ki, steering.Kd);
+					}
 				
 					// Update steering error and command steering
 					steering.UpdateError(cte);
@@ -121,8 +123,9 @@ int main()
 					double error_speed = speed - adjusted_speed_target;
 					
 					// Tune Throttle PID parameters with twiddle
-					error_speed = throttleTune.Tune(error_speed, throttle.Kp, throttle.Ki, throttle.Kd);
-
+					if (false) {
+						error_speed = throttleTune.Tune(error_speed, throttle.Kp, throttle.Ki, throttle.Kd);
+					}
 					// Update throttle error and commanded speed
 					throttle.UpdateError(error_speed);
 					double long_pedal = throttle.Command();
