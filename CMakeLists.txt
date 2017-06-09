@@ -5,11 +5,11 @@ set(CXX_FLAGS "-W1")
 set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     
-    set(sources src/PID.cpp src/main.cpp src/uWS/Extensions.cpp src/uWS/Group.cpp src/uWS/WebSocketImpl.cpp src/uWS/Networking.cpp src/uWS/Hub.cpp src/uWS/Node.cpp src/uWS/WebSocket.cpp src/uWS/HTTPSocket.cpp src/uWS/Socket.cpp src/uWS/uUV.cpp)
+    set(sources src/PID.cpp src/main.cpp src/Twiddle.cpp src/uWS/Extensions.cpp src/uWS/Group.cpp src/uWS/WebSocketImpl.cpp src/uWS/Networking.cpp src/uWS/Hub.cpp src/uWS/Node.cpp src/uWS/WebSocket.cpp src/uWS/HTTPSocket.cpp src/uWS/Socket.cpp src/uWS/uUV.cpp)
     set_source_files_properties(${sources} PROPERTIES COMPILE_FLAGS "-D_USE_MATH_DEFINES")
 
 else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(sources src/PID.cpp src/main.cpp)
+    set(sources src/PID.cpp src/Twiddle.cpp src/main.cpp)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
